@@ -1,8 +1,42 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+name: My-App CI
+run-name: ${{ github.actor }} is triggering Pipeline 🚀
+on: 
+  pull_request:
+    types:
+      - closed
 jobs:
-  build:
+  versioning:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Git
+        run: git config --global user.email "actions@github.com" && git config --global user.name "GitHub Actions"
+      - name: Get the latest Git tag
+        id: get_latest_tag
+        run: echo "::set-output name=latest_tag::$(git describe --tags --abbrev=0 || echo 'v0.0.0')"
+      - name: Extract major, minor, and patch versions
+        id: extract_versions
+        run: echo "::set-output name=major_minor_patch::$(echo ${{ steps.get_latest_tag.outputs.latest_tag }} | sed -E 's/v([0-9]+)\.([0-9]+)\.([0-9]+)/\1 \2 \3/')"
+      - name: Set outputs
+        id: set_outputs
+        run: |
+          echo "::set-output name=major::$(echo ${{ steps.extract_versions.outputs.major_minor_patch }} | cut -d ' ' -f 1)"
+          echo "::set-output name=minor::$(echo ${{ steps.extract_versions.outputs.major_minor_patch }} | cut -d ' ' -f 2)"
+          echo "::set-output name=patch::$(echo ${{ steps.extract_versions.outputs.major_minor_patch }} | cut -d ' ' -f 3)"
+      - name: Increment patch version
+        id: increment_patch
+        run: echo "::set-output name=incremented_patch::$((${{ steps.set_outputs.outputs.patch }} + 1)"
+      - name: Create a full version
+        id: full_version
+        run: echo "::set-output name=version::v${{ steps.set_outputs.outputs.major }}.${{ steps.set_outputs.outputs.minor }}.${{ steps.increment_patch.outputs.incremented_patch }}"  
+      - name: Create Git tag
+        id: create_git_tag
+        run: git tag -a "${{ steps.full_version.outputs.version }}" -m "Version ${{ steps.full_version.outputs.version }}"
+      - name: Push Git tag
+        run: git push origin "${{ steps.full_version.outputs.version }}"
+  build_push:
+    needs: versioning
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -19,5 +53,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${{ needs.versioning.outputs.version }}
+      - run: echo "This job's status is ${{ job.status }}."
