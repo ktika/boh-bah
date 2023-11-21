@@ -1,9 +1,5 @@
 # boh-bah
 
-### Prerequisites
-- Docker
-- Git
-
 ### Part 1: Containerization
 1. Create a Dockerfile to create an app's image
     - Base image: `node:18-alpine3.17`
