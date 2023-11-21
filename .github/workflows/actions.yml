@@ -26,7 +26,7 @@ jobs:
           echo "::set-output name=patch::$(echo ${{ steps.extract_versions.outputs.major_minor_patch }} | cut -d ' ' -f 3)"
       - name: Increment patch version
         id: increment_patch
-        run: echo "::set-output name=incremented_patch::$((${{ steps.set_outputs.outputs.patch }} + 1)"
+        run: echo "::set-output name=incremented_patch::$((${{ steps.set_outputs.outputs.patch }} + 1))"
       - name: Create a full version
         id: full_version
         run: echo "::set-output name=version::v${{ steps.set_outputs.outputs.major }}.${{ steps.set_outputs.outputs.minor }}.${{ steps.increment_patch.outputs.incremented_patch }}"  
