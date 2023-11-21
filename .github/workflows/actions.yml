@@ -33,7 +33,7 @@ jobs:
         id: create_git_tag
         run: git tag -a "${{ steps.full_version.outputs.version }}" -m "Version ${{ steps.full_version.outputs.version }}"
       - name: Push Git tag
-        run: git push origin "${{ steps.full_version.outputs.version }}" --follow-tags
+        run: git push origin "${{ steps.full_version.outputs.version }}"
   build_push:
     needs: versioning
     runs-on: ubuntu-latest
