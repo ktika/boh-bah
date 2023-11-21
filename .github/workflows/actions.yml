@@ -1,12 +1,8 @@
 name: My-App CI
 run-name: ${{ github.actor }} is triggering Pipeline 🚀
-on:
+on: 
   pull_request:
-    types:
-      - closed
-  push:
-    branches:
-      - main
+  merge_group:
 jobs:
   versioning:
     runs-on: ubuntu-latest
